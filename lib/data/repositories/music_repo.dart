@@ -1,29 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../music/music_model.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MusicRepository {
+  final OnAudioQuery _audioQuery = OnAudioQuery();
 
-  Future<List<Music>> fetchMusics() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('musics').get();
-    return querySnapshot.docs.map((doc) => Music.fromJson(doc.data())).toList();
-  }
-
-  Future<void> addFavorite(Music music) async {
-    await FirebaseFirestore.instance.collection('favorites').add(music.toJson());
-  }
-
-  Future<void> removeFavorite(String musicId) async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('favorites')
-        .where('id', isEqualTo: musicId)
-        .get();
-    for (var doc in querySnapshot.docs) {
-      await doc.reference.delete();
+  Future<List<SongModel>> fetchMusics() async {
+    if (!await _hasPermission()) {
+      throw Exception("Storage permission not granted");
     }
+    return await _audioQuery.querySongs();
   }
 
-  Future<List<Music>> fetchFavorites() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('favorites').get();
-    return querySnapshot.docs.map((doc) => Music.fromJson(doc.data())).toList();
+  Future<bool> _hasPermission() async {
+    if (await Permission.storage.request().isGranted) {
+      return true;
+    }
+    return false;
   }
 }

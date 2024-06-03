@@ -1,31 +1,15 @@
 class Music {
-  final String name;
+  final String data;
+  final String id;
+  final String title;
   final String artist;
-  final String picture;
-  final String audioFile;
+  final String uri;
 
   Music({
-    required this.name,
+    required this.data,
+    required this.id,
+    required this.title,
     required this.artist,
-    required this.picture,
-    required this.audioFile,
+    required this.uri,
   });
-
-  factory Music.fromJson(Map<String, dynamic> json) {
-    return Music(
-      name: json['name'],
-      artist: json['artist'],
-      picture: json['picture'],
-      audioFile: json['audio_file'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'artist': artist,
-      'picture': picture,
-      'audio_file': audioFile,
-    };
-  }
 }

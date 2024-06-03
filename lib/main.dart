@@ -1,36 +1,28 @@
 import 'package:audio_player/screens/audios_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'bloc/music/music_bloc.dart';
-import 'bloc/music/music_event.dart';
-import 'data/repositories/music_repo.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
+void main() {
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final MusicRepository musicRepository = MusicRepository();
-
-  MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => MusicBloc(musicRepository)..add(LoadMusics()),
-        ),
+        BlocProvider(create: (_) => MusicBloc()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        title: 'Audio Player',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: MusicListScreen(),
+        home:  AllAudiosScreen(),
       ),
     );
   }

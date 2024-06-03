@@ -1,5 +1,3 @@
-import 'package:audio_player/screens/favorites_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/music/music_bloc.dart';
@@ -7,74 +5,58 @@ import '../bloc/music/music_event.dart';
 import '../bloc/music/music_state.dart';
 import 'audio_player_screen.dart';
 
-class MusicListScreen extends StatefulWidget {
-  const MusicListScreen({super.key});
+class AllAudiosScreen extends StatefulWidget {
+  const AllAudiosScreen({super.key, this.onMusicChosen});
+
+  final Function(String)? onMusicChosen;
 
   @override
-  State<MusicListScreen> createState() => _MusicListScreenState();
+  State<AllAudiosScreen> createState() => _AllAudiosScreenState();
 }
 
-class _MusicListScreenState extends State<MusicListScreen> {
-  init() async {
-    context.read<MusicBloc>().add(LoadMusics());
-  }
-
-  @override
-  void initState() {
-    init();
-    setState(() {});
-    super.initState();
-  }
+class _AllAudiosScreenState extends State<AllAudiosScreen> {
+  bool isLike = false;
 
   @override
   Widget build(BuildContext context) {
-    context.read<MusicBloc>().add(LoadMusics());
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Musics'),
-        actions: [
-          IconButton(onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>FavoritesScreen()));
-          }, icon: Icon(Icons.favorite_border))
-        ],
-      ),
-      body: BlocBuilder<MusicBloc, MusicState>(
-        builder: (context, state) {
-          if (state is MusicLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is MusicLoaded) {
-            return ListView.builder(
-              itemCount: state.musics.length,
-              itemBuilder: (context, index) {
-                final music = state.musics[index];
-                return ListTile(
-                  title: Text(music.name),
-                  subtitle: Text(music.artist),
-                  leading: CachedNetworkImage(
-                    imageUrl: music.picture,
-                    placeholder: (context, url) => CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.account_circle_rounded,
-                    ),
-                  ),
-                  onTap: () {
-                    context.read<MusicBloc>().add(PlayMusic(music));
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MusicPlayerScreen(music: music),
-                      ),
-                    );
-                    initState();
-
-                  },
-                );
-              },
-            );
-          } else {
-            return const Center(child: Text('No music available.'));
-          }
-        },
+    return BlocProvider(
+      create: (_) => MusicBloc()..add(FetchMusic()),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: const Text('My Musics',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w700),),
+        ),
+        body: BlocBuilder<MusicBloc, MusicState>(
+          builder: (context, state) {
+            if (state is MusicLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is MusicLoaded) {
+              return ListView.builder(
+                itemCount: state.musicList.length,
+                itemBuilder: (context, index) {
+                  final song = state.musicList[index];
+                  return ListTile(
+                    trailing: IconButton(onPressed: (){
+                      setState(() {
+                        isLike = !isLike;
+                      });
+                    }, icon: const Icon(Icons.favorite_border,color: Colors.white,)),
+                    leading: const Icon(Icons.music_note_outlined,color: Colors.lightBlue,size: 30,),
+                    title: Text(song.title,style: const TextStyle(color: Colors.white,fontWeight: FontWeight.w700)),
+                    subtitle: Text(song.artist,style: const TextStyle(color: Colors.white)),
+                    onTap: () {
+                     Navigator.push(context, MaterialPageRoute(builder: (context) => MusicPlayerScreen(music: song,)));
+                    },
+                  );
+                },
+              );
+            } else if (state is MusicError) {
+              return Center(child: Text(state.error));
+            }
+            return const Center(child: Text('NO',style: TextStyle(color: Colors.white)));
+          },
+        ),
       ),
     );
   }
